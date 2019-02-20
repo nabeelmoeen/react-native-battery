@@ -2,76 +2,57 @@
  * Sample React Native App
  * https://github.com/facebook/react-native
  */
-'use strict';
+//'use strict';
 
-var React = require('react-native');
-var BatteryManager = require('NativeModules').BatteryManager;
-var {
-  AppRegistry,
-  StyleSheet,
-  Text,
-  View,
-  DeviceEventEmitter,
-} = React;
+import { NativeModules, AppRegistry, StyleSheet, Text, View, DeviceEventEmitter} from 'react-native';
+import React, { Component } from 'react';
+const BatteryManager = NativeModules.BatteryManager
 
-var RCTBattery = React.createClass({
+export default class RCTBattery extends Component{
 
-  getInitialState: function() {
-    return {batteryLevel: null, charging:false};
-  },
+  _subscription = null 
 
-  onBatteryStatus: function(info){
+  constructor(props){
+    super(props)
+    this.state = {batteryLevel: null, charging:false};
+  }
+
+  onBatteryStatus= (info)=>{
     this.setState({batteryLevel: info.level});
     this.setState({charging: info.isPlugged});
-  },
+  }
 
-  componentDidMount: function(){
-    BatteryManager.updateBatteryLevel(function(info){
-      this._subscription = DeviceEventEmitter.addListener('BatteryStatus', this.onBatteryStatus);
-      this.setState({batteryLevel: info.level});
-      this.setState({charging: info.isPlugged});
-    }.bind(this));
-  },
+  componentDidMount() {
+      BatteryManager.updateBatteryLevel((info) => {
+        console.log('inside updateBatterylevel() method')
+        this._subscription = DeviceEventEmitter.addListener('BatteryStatus', this.onBatteryStatus);
+        this.setState({batteryLevel: info.level});
+        this.setState({charging: info.isPlugged});
+        }
+      ) 
+  }
 
-  componentWillUnmount: function(){
-    this._subscription.remove();
-  },
-  
-  render: function() {
+  componentWillUnmount(){
+    
+  }
+
+  render() {
     var chargingText;
     if(this.state.charging){
-      chargingText =<Text style={styles.instructions}>Charging </Text>;
+      chargingText =<Text>Charging </Text>;
     } else {
-      chargingText =<Text style={styles.instructions}>Not Charging </Text>;
+      chargingText =<Text>Not Charging </Text>;
     }
     return (
-      <View style={styles.container}>
-        <Text style={styles.welcome}>
+      <View >
+        <Text >
           Battery Level {this.state.batteryLevel}
         </Text>
         {chargingText}
       </View>
-    );
+    )
   }
-});
+}
 
-var styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: '#F5FCFF',
-  },
-  welcome: {
-    fontSize: 20,
-    textAlign: 'center',
-    margin: 10,
-  },
-  instructions: {
-    textAlign: 'center',
-    color: '#333333',
-    marginBottom: 5,
-  },
-});
 
 AppRegistry.registerComponent('RCTBattery', () => RCTBattery);
